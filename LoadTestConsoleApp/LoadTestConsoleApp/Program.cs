@@ -5,16 +5,23 @@
         static async Task Main(string[] args)
         {
             var hostname = "intellispatialwebapplication.azurewebsites.net";
-            var numberOfRequests = 100;
+            var numberOfRequests = 300;
             var httpVersion = new Version(2, 0);
 
-            using HttpClient client = new();
+            HttpClientHandler handler = new();
+
+            if (handler.SupportsAutomaticDecompression)
+            {
+                handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
+            }
+
+            using HttpClient client = new(handler);
 
             client.DefaultRequestVersion = httpVersion;
 
             async Task<HttpResponseMessage> GetWeather()
             {
-                var response = await client.GetAsync($"http://{hostname}/weatherforecast");
+                var response = await client.GetAsync($"https://{hostname}/weatherforecast");
 
                 return response;
             }
@@ -34,7 +41,7 @@
             {
                 i++;
 
-                Console.WriteLine($"[{i}] Response: {response.StatusCode}");
+                Console.WriteLine($"[{i}] Response: {response.StatusCode}. HTTP Version {response.Version}");
 
                 var responseContent = await response.Content.ReadAsStringAsync();
 
